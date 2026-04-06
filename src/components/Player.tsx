@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useRef, useEffect, useCallback, useState } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { Group, MathUtils } from 'three';
-import { useGameStore } from '@/store/gameStore';
+import { useRef, useEffect, useCallback, useState } from "react";
+import { useFrame } from "@react-three/fiber";
+import { Group, MathUtils } from "three";
+import { useGameStore } from "@/store/gameStore";
 import {
   GameState,
   GamePhase,
@@ -12,8 +12,8 @@ import {
   START_LINE_Z,
   FINISH_LINE_Z,
   FIELD_WIDTH,
-} from '@/utils/constants';
-import { PersonModel } from './PersonModel';
+} from "@/utils/constants";
+import { PersonModel } from "./PersonModel";
 
 export default function Player() {
   const meshRef = useRef<Group>(null);
@@ -35,35 +35,44 @@ export default function Player() {
   const winGame = useGameStore((s) => s.winGame);
 
   // Keyboard handlers
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    const key = e.key.toLowerCase();
-    if (key === ' ') {
-      e.preventDefault();
-      const state = useGameStore.getState();
-      if (state.gameState === GameState.PLAYING || state.gameState === GameState.GAME_ACTIVE) {
-        toggleFreeze();
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if (key === " ") {
+        e.preventDefault();
+        const state = useGameStore.getState();
+        if (
+          state.gameState === GameState.PLAYING ||
+          state.gameState === GameState.GAME_ACTIVE
+        ) {
+          toggleFreeze();
+        }
+        return;
       }
-      return;
-    }
-    keysPressed.current.add(key);
-  }, [toggleFreeze]);
+      keysPressed.current.add(key);
+    },
+    [toggleFreeze],
+  );
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
     keysPressed.current.delete(e.key.toLowerCase());
   }, []);
 
   useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
     };
   }, [handleKeyDown, handleKeyUp]);
 
   // Reset player position/rotation when game restarts
   useEffect(() => {
-    if ((gameState === GameState.PLAYING || gameState === GameState.MENU) && meshRef.current) {
+    if (
+      (gameState === GameState.PLAYING || gameState === GameState.MENU) &&
+      meshRef.current
+    ) {
       const startPos = useGameStore.getState().playerPosition;
       meshRef.current.position.set(startPos[0], startPos[1], startPos[2]);
       meshRef.current.rotation.set(0, 0, 0);
@@ -80,72 +89,69 @@ export default function Player() {
     }
   }, [gameState]);
 
+  const checkGameProgression = (zPos: number) => {
+    if (gameState === GameState.PLAYING && zPos >= START_LINE_Z) {
+      setHasStartedRunning(true);
+      setGameState(GameState.GAME_ACTIVE);
+    } else if (gameState === GameState.GAME_ACTIVE && zPos >= FINISH_LINE_Z) {
+      winGame();
+    }
+  };
+
+  const handleMovement = (delta: number, isSprinting: boolean) => {
+    if (!meshRef.current) return;
+
+    const speed =
+      PLAYER_SPEED * (isSprinting ? PLAYER_SPRINT_MULTIPLIER : 1) * delta;
+    const pos = meshRef.current.position;
+
+    if (keysPressed.current.has("w")) pos.z += speed;
+    if (keysPressed.current.has("s")) pos.z -= speed;
+    if (keysPressed.current.has("a")) pos.x += speed;
+    if (keysPressed.current.has("d")) pos.x -= speed;
+
+    pos.x = MathUtils.clamp(pos.x, -(FIELD_WIDTH / 2) + 1, FIELD_WIDTH / 2 - 1);
+    pos.z = Math.max(pos.z, START_LINE_Z - 5);
+
+    setPlayerPosition([pos.x, pos.y, pos.z]);
+    setIsWalking(true);
+
+    checkGameProgression(pos.z);
+  };
+
   useFrame((_, delta) => {
     if (!meshRef.current) return;
 
-    // Death effect — freeze in place (no falling)
     if (!playerAlive) {
       deathTimer.current += delta;
       setIsWalking(false);
       return;
     }
 
-    // Not in playable states
-    if (gameState !== GameState.PLAYING && gameState !== GameState.GAME_ACTIVE) return;
-
-    // Frozen — ignore all movement
-    if (isFrozen) {
+    const isPlayable =
+      gameState === GameState.PLAYING || gameState === GameState.GAME_ACTIVE;
+    if (!isPlayable || isFrozen) {
       setIsWalking(false);
       return;
     }
 
-    // Check for movement keys
-    const isMoving =
-      keysPressed.current.has('w') ||
-      keysPressed.current.has('a') ||
-      keysPressed.current.has('s') ||
-      keysPressed.current.has('d');
-    const isSprinting = keysPressed.current.has('shift');
+    const moveKeys = ["w", "a", "s", "d"];
+    const isMoving = moveKeys.some((key) => keysPressed.current.has(key));
+    const isSprinting = keysPressed.current.has("shift");
 
-    // RED LIGHT DETECTION
-    if (
+    const isRedLightViolation =
       gameState === GameState.GAME_ACTIVE &&
       gamePhase === GamePhase.RED &&
       !graceActive &&
-      isMoving
-    ) {
+      isMoving;
+
+    if (isRedLightViolation) {
       eliminatePlayer();
       return;
     }
 
-    // Movement
     if (isMoving) {
-      const speed = PLAYER_SPEED * (isSprinting ? PLAYER_SPRINT_MULTIPLIER : 1) * delta;
-      const pos = meshRef.current.position;
-
-      if (keysPressed.current.has('w')) pos.z += speed;
-      if (keysPressed.current.has('s')) pos.z -= speed;
-      if (keysPressed.current.has('a')) pos.x += speed;
-      if (keysPressed.current.has('d')) pos.x -= speed;
-
-      // Clamp to field bounds
-      pos.x = MathUtils.clamp(pos.x, -(FIELD_WIDTH / 2) + 1, (FIELD_WIDTH / 2) - 1);
-      pos.z = Math.max(pos.z, START_LINE_Z - 5);
-
-      // Update store position
-      setPlayerPosition([pos.x, pos.y, pos.z]);
-      setIsWalking(true);
-
-      // Check if crossed start line → activate game
-      if (gameState === GameState.PLAYING && pos.z >= START_LINE_Z) {
-        setHasStartedRunning(true);
-        setGameState(GameState.GAME_ACTIVE);
-      }
-
-      // Check win condition
-      if (gameState === GameState.GAME_ACTIVE && pos.z >= FINISH_LINE_Z) {
-        winGame();
-      }
+      handleMovement(delta, isSprinting);
     } else {
       setIsWalking(false);
     }

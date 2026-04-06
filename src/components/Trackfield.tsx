@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useRef } from 'react';
-import { Mesh } from 'three';
+import { useRef } from "react";
+import { Mesh } from "three";
 import {
   FIELD_LENGTH,
   FIELD_WIDTH,
@@ -10,7 +10,7 @@ import {
   START_LINE_Z,
   FINISH_LINE_Z,
   COLORS,
-} from '@/utils/constants';
+} from "@/utils/constants";
 
 export default function Trackfield() {
   const groundRef = useRef<Mesh>(null);
@@ -40,7 +40,7 @@ export default function Trackfield() {
 
       {/* Right Wall */}
       <mesh
-        position={[(FIELD_WIDTH / 2) + WALL_THICKNESS / 2, WALL_HEIGHT / 2, 0]}
+        position={[FIELD_WIDTH / 2 + WALL_THICKNESS / 2, WALL_HEIGHT / 2, 0]}
         castShadow
         receiveShadow
       >
@@ -55,23 +55,28 @@ export default function Trackfield() {
         position={[0, 0.005, -(FIELD_LENGTH / 2) - 2]}
       >
         <planeGeometry args={[FIELD_WIDTH, 0.15]} />
-        <meshStandardMaterial color="rgba(255,255,255,0.3)" opacity={0.3} transparent />
+        <meshStandardMaterial
+          color="rgba(255,255,255,0.3)"
+          opacity={0.3}
+          transparent
+        />
       </mesh>
 
       {/* Front edge line (beyond finish) */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, 0.005, (FIELD_LENGTH / 2) + 2]}
+        position={[0, 0.005, FIELD_LENGTH / 2 + 2]}
       >
         <planeGeometry args={[FIELD_WIDTH, 0.15]} />
-        <meshStandardMaterial color="rgba(255,255,255,0.3)" opacity={0.3} transparent />
+        <meshStandardMaterial
+          color="rgba(255,255,255,0.3)"
+          opacity={0.3}
+          transparent
+        />
       </mesh>
 
       {/* Start Line */}
-      <mesh
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, 0.01, START_LINE_Z]}
-      >
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, START_LINE_Z]}>
         <planeGeometry args={[FIELD_WIDTH, 0.3]} />
         <meshStandardMaterial color={COLORS.startFinishLine} />
       </mesh>
@@ -89,32 +94,30 @@ export default function Trackfield() {
       ))}
 
       {/* Finish Line */}
-      <mesh
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, 0.01, FINISH_LINE_Z]}
-      >
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, FINISH_LINE_Z]}>
         <planeGeometry args={[FIELD_WIDTH, 0.3]} />
         <meshStandardMaterial color={COLORS.startFinishLine} />
       </mesh>
 
       {/* Finish Line Checkered Pattern */}
       {Array.from({ length: 20 }).map((_, i) => {
-        const xPos = -FIELD_WIDTH / 2 + (i * FIELD_WIDTH) / 20 + FIELD_WIDTH / 40;
+        const xPos =
+          -FIELD_WIDTH / 2 + (i * FIELD_WIDTH) / 20 + FIELD_WIDTH / 40;
         return (
           <mesh
             key={`checker-${xPos}`}
-          rotation={[-Math.PI / 2, 0, 0]}
-          position={[
-            -FIELD_WIDTH / 2 + (i * FIELD_WIDTH) / 20 + FIELD_WIDTH / 40,
-            0.015,
-            FINISH_LINE_Z,
-          ]}
-        >
-          <planeGeometry args={[FIELD_WIDTH / 20 - 0.05, 0.5]} />
-          <meshStandardMaterial
-            color={i % 2 === 0 ? COLORS.startFinishLine : '#333333'}
-          />
-        </mesh>
+            rotation={[-Math.PI / 2, 0, 0]}
+            position={[
+              -FIELD_WIDTH / 2 + (i * FIELD_WIDTH) / 20 + FIELD_WIDTH / 40,
+              0.015,
+              FINISH_LINE_Z,
+            ]}
+          >
+            <planeGeometry args={[FIELD_WIDTH / 20 - 0.05, 0.5]} />
+            <meshStandardMaterial
+              color={i % 2 === 0 ? COLORS.startFinishLine : "#333333"}
+            />
+          </mesh>
         );
       })}
 

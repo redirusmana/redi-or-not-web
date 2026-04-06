@@ -3,7 +3,7 @@
 // ============================================
 
 // --- Field Dimensions ---
-export const FIELD_LENGTH = 100;
+export const FIELD_LENGTH = 120;
 export const FIELD_WIDTH = 30;
 export const WALL_HEIGHT = 12;
 export const WALL_THICKNESS = 0.5;
@@ -13,15 +13,15 @@ export const START_LINE_Z = -(FIELD_LENGTH / 2) + 5;
 export const FINISH_LINE_Z = (FIELD_LENGTH / 2) - 10;
 
 // --- Player ---
-export const PLAYER_SPEED = 5;
+export const PLAYER_SPEED = 4;
 export const PLAYER_SPRINT_MULTIPLIER = 1.5;
 export const PLAYER_START_POSITION: [number, number, number] = [0, 0, START_LINE_Z - 3];
 export const PLAYER_SCALE = 0.8;
 
 // --- NPC ---
 export const NPC_COUNT = 3;
-export const NPC_SPEED_MIN = 3.5;
-export const NPC_SPEED_MAX = 5.5;
+export const NPC_SPEED_MIN = 3;
+export const NPC_SPEED_MAX = 4.5;
 export const NPC_POSITIONS: [number, number, number][] = [
   [-6, 0, START_LINE_Z - 4],
   [5, 0, START_LINE_Z - 2],
@@ -50,31 +50,31 @@ export interface DifficultyTier {
 export const DIFFICULTY_TIERS: DifficultyTier[] = [
   // Relaxed: 60-40s remaining
   {
-    timeThreshold: 40,
+    timeThreshold: 30,
     greenMin: 2,
-    greenMax: 4.5,
+    greenMax: 3.5,
     redMin: 3,
     redMax: 6,
-    yellowWarning: 0.8,
-    yellowTransition: 0.6,
+    yellowWarning: 0.6,
+    yellowTransition: 0.5,
   },
   // Tense: 40-20s remaining
   {
     timeThreshold: 20,
     greenMin: 1.5,
-    greenMax: 3,
-    redMin: 3,
-    redMax: 5.5,
-    yellowWarning: 0.6,
-    yellowTransition: 0.5,
+    greenMax: 2.75,
+    redMin: 2.5,
+    redMax: 4.5,
+    yellowWarning: 0.5,
+    yellowTransition: 0.4,
   },
   // Frantic: 20-0s remaining
   {
     timeThreshold: 0,
     greenMin: 1,
     greenMax: 2,
-    redMin: 2.5,
-    redMax: 5,
+    redMin: 2,
+    redMax: 3,
     yellowWarning: 0.4,
     yellowTransition: 0.3,
   },
